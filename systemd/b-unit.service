@@ -1,0 +1,15 @@
+[Unit]
+Description=B-Unit Server Service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/gpt-2/    
+ExecStart=/home/pi/env/bin/python3 src/b-unit_server.py
+Restart=on-failure
+StandardOutput=syslog
+SyslogIdentifier=b-unit_server
+Type=idle
+User=pi
+
+[Install]
+WantedBy=multi-user.target

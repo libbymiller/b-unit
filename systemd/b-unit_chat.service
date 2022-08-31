@@ -1,0 +1,15 @@
+[Unit]
+Description=B-Unit Server Service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/chat-server/
+ExecStart=/usr/bin/node index.js
+Restart=on-failure
+StandardOutput=syslog
+SyslogIdentifier=b-unit_server
+Type=idle
+User=su
+
+[Install]
+WantedBy=multi-user.target

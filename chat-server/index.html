@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat with B-Unit</title>
+    <style>
+      body { 
+        margin: 0; padding-bottom: 3rem; font-family:  "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        background-image: url("colour_blobs.png"); background-position: center center; background-size: cover; background-repeat: no-repeat; background-attachment: fixed; 
+      }
+
+      #form { 
+        background: rgb(212,5,140); padding-left: 10rem; padding-top: 1rem; padding-bottom: 1rem; padding-right: 10rem; 
+        position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 5rem; box-sizing: border-box; backdrop-filter: blur(10px); 
+      }
+
+      #form > button {
+          background-color: rgb(132,236,124); margin: 0.25rem; border: none; border-radius: 50%; color: #fff; 
+          padding-top:0.25em;
+          padding-left:0.5em;
+      }
+
+      #form > button > img {
+          width: 2em;
+      }
+
+      #input { border: none; flex-grow: 1; margin: 0.25rem; font-size: 2em;}
+      #input:focus { outline: none; }
+
+      #messages { list-style-type: none; margin: 0; padding: 0;
+         position: fixed; bottom: 10em; left: 0; right: 0;
+      }
+      #messages > li { padding: 1rem 1rem; margin-top: 1em; }
+
+      #status { font-style: italic; padding: 0.5rem 1rem; position: fixed; bottom: 5em; left: 0; right: 0; display: flex; height: 1rem;
+        left: 50%; transform: translateX(-50%);
+      }
+
+      #name { position: fixed; bottom: 0; top: 0; left: 0; right: 0; display: none; font-size: 2.5em; margin: auto;}
+
+      #addname {   height: 100%;  width: 100%; position: fixed;  align-items: center;  justify-content: center; text-align: center; padding-top: 3em; }
+
+      #addname > input, select, textarea { font-size: 1em; }
+
+      #addname > p { 
+        font-weight: bold;
+        font-style: italic;
+        margin: 0;
+        margin-bottom: 0.2em;
+      }
+
+      #addname > button {
+          background-color: rgb(132,236,124); margin: 0.25rem; border: none; border-radius: 50%; color: #fff; 
+          padding-top:0.25em;
+          padding-left:0.5em;
+          margin: auto;
+      }
+
+      #addname > button > img {
+          width: 2em;
+      }
+
+
+      .b-unit {
+          margin-left: 20%;
+          width: 30%;
+          background: rgb(249,226,4);
+          border-radius: 1.5em;
+      }
+
+      .friend {
+          margin-left: 50%;
+          width: 30%;
+          background: rgb(66,249,66);
+          border-radius: 1.5em;
+      }
+
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <p id="status"></p>
+    <form id="form" action="">
+      <input type="text" id="input" autocomplete="off" placeholder="Start your chat with b-unit" />
+      <button><img src="arrow.png" /></button>
+    </form>
+    <div id="name">
+     <form id="addname" action="">
+       <img src="hi.png" />
+       <p>What's your name?</p>
+       <input id="inputname" autocomplete="off" /><br />
+       <button><img src="arrow.png" /></button>
+     </form>      
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      let cookie = document.cookie;
+      //console.log("COOKIE",cookie);
+      let myname = null;
+
+      //always prompt for name
+      document.querySelector("#name").style.display = "flex";
+      document.querySelector("#form").style.display = "none";
+
+      if(!cookie || cookie ==""){
+        //do nothing
+      }else{
+         let x = getCookie("name")
+         document.querySelector("#inputname").value = x;
+         myname = x;
+      }
+
+      var addname =  document.querySelector("#addname");
+      var inputname = document.getElementById('inputname');
+      addname.addEventListener('submit', function(e) {
+        console.log("ok",input.value);
+        e.preventDefault();
+        if (inputname.value && inputname.value!="") {
+          document.cookie = "name="+inputname.value;
+          myname = inputname.value;
+          inputname.value = '';
+          document.querySelector("body").style['background-image'] = 'url("colour_blobs_fade.png")';
+          document.querySelector("#name").style.display = "none";
+          document.querySelector("#form").style.display = "flex";
+        }
+      });
+
+      var socket = io();
+
+      var messages = document.getElementById('messages');
+      var form = document.getElementById('form');
+      var input = document.getElementById('input');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit('chat message', {name: myname, text: input.value} );
+          input.value = '';
+        }
+      });
+
+      socket.on('chat message', function(msg) {
+        console.log("msg",msg);
+        var p = document.querySelector("#status");
+        p.textContent = "";
+        var item = document.createElement('li');
+        if(msg.name == "b-unit"){
+          item.className = msg.name;
+        }else{
+          item.className = "friend";
+        }
+        item.innerHTML = "<b>"+msg.name+"</b>: "+msg.text;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on('status message', function(msg) {
+        var p = document.querySelector("#status");
+        p.textContent = msg;
+      });
+
+
+      function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+           let c = ca[i];
+           while (c.charAt(0) == ' ') {
+             c = c.substring(1);
+           }
+           if (c.indexOf(name) == 0) {
+             return c.substring(name.length, c.length);
+           }
+        }
+        return "";
+      }
+
+    </script>
+  </body>
+</html>
